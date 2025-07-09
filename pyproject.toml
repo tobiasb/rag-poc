@@ -1,0 +1,38 @@
+[project]
+name = "rag-poc"
+version = "0.1.0"
+description = "A personal notes RAG system for searching through markdown files"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "fastembed>=0.3.0",
+    "chromadb>=0.5.0",
+    "sentence-transformers>=3.0.0",
+    "black>=25.1.0",
+    "isort>=6.0.1",
+    "pylint>=3.3.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.7.0",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3.4",
+    "ruff>=0.8.5",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]  # line too long
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
