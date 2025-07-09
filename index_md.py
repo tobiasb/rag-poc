@@ -80,23 +80,31 @@ def smart_chunk_markdown(
             if len(current_chunk) > max_size:
                 # Try to split at sentence boundaries
                 sentences = re.split(r"(?<=[.!?])\s+", current_chunk)
-                temp_chunk = ""
-
-                for sentence in sentences:
-                    if len(temp_chunk + sentence) <= size:
-                        temp_chunk += sentence + " "
-                    else:
-                        if temp_chunk.strip() and len(temp_chunk) >= min_size:
-                            chunks.append(
-                                {
+                if len(sentences) == 1:  # Fallback: no sentence boundaries found
+                    # Split by fixed size
+                    for start in range(0, len(current_chunk), size):
+                        chunk = current_chunk[start:start+size]
+                        if len(chunk.strip()) >= min_size:
+                            chunks.append({
+                                "text": chunk.strip(),
+                                "type": "content",
+                                "headers": current_headers.copy(),
+                            })
+                    current_chunk = ""
+                else:
+                    temp_chunk = ""
+                    for sentence in sentences:
+                        if len(temp_chunk + sentence) <= size:
+                            temp_chunk += sentence + " "
+                        else:
+                            if temp_chunk.strip() and len(temp_chunk) >= min_size:
+                                chunks.append({
                                     "text": temp_chunk.strip(),
                                     "type": "content",
                                     "headers": current_headers.copy(),
-                                }
-                            )
-                        temp_chunk = sentence + " "
-
-                current_chunk = temp_chunk
+                                })
+                            temp_chunk = sentence + " "
+                    current_chunk = temp_chunk
 
     # Add the final chunk
     if current_chunk.strip() and len(current_chunk) >= min_size:
@@ -129,15 +137,17 @@ def smart_chunk_markdown(
                         chunk_text = text[start:end]
 
                 if len(chunk_text) >= min_size:
-                    final_chunks.append(
-                        {
-                            "text": chunk_text.strip(),
-                            "type": "windowed",
-                            "headers": chunk_data["headers"],
-                        }
-                    )
+                    final_chunks.append({
+                        "text": chunk_text.strip(),
+                        "type": "windowed",
+                        "headers": chunk_data["headers"],
+                    })
 
-                start = end - overlap
+                next_start = end - overlap
+                if next_start <= start:
+                    # Prevent infinite loop: always advance at least one character
+                    next_start = start + 1
+                start = next_start
                 if start >= len(text):
                     break
 
@@ -286,9 +296,13 @@ def main(directory):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python index_md.py /path/to/markdown_dir")
-        print("\nExample:")
-        print("  python index_md.py ~/Documents/notes")
-        sys.exit(1)
-    main(sys.argv[1])
+    try:
+        if len(sys.argv) != 2:
+            print("Usage: python index_md.py /path/to/markdown_dir")
+            print("\nExample:")
+            print("  python index_md.py ~/Documents/notes")
+            sys.exit(1)
+        main(sys.argv[1])
+    except KeyboardInterrupt:
+        print("\n🛑 Indexing interrupted by user (Ctrl+C). Exiting cleanly.")
+        sys.exit(130)
