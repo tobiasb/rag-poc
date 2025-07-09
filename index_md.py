@@ -22,7 +22,13 @@ from fastembed import TextEmbedding
 from config import *
 
 
-def smart_chunk_markdown(text, size=CHUNK_SIZE, overlap=CHUNK_OVERLAP, min_size=MIN_CHUNK_SIZE, max_size=MAX_CHUNK_SIZE):
+def smart_chunk_markdown(
+    text,
+    size=CHUNK_SIZE,
+    overlap=CHUNK_OVERLAP,
+    min_size=MIN_CHUNK_SIZE,
+    max_size=MAX_CHUNK_SIZE,
+):
     """
     Split markdown text into intelligent chunks that respect structure.
 
@@ -40,7 +46,7 @@ def smart_chunk_markdown(text, size=CHUNK_SIZE, overlap=CHUNK_OVERLAP, min_size=
         return [{"text": text, "type": "single_chunk"}]
 
     # Split by markdown headers first (##, ###, etc.)
-    header_pattern = r'^(#{1,6}\s+.+)$'
+    header_pattern = r"^(#{1,6}\s+.+)$"
     sections = re.split(header_pattern, text, flags=re.MULTILINE)
 
     chunks = []
@@ -55,11 +61,13 @@ def smart_chunk_markdown(text, size=CHUNK_SIZE, overlap=CHUNK_OVERLAP, min_size=
         if re.match(header_pattern, section, re.MULTILINE):
             # If we have content, save the current chunk
             if current_chunk.strip() and len(current_chunk) >= min_size:
-                chunks.append({
-                    "text": current_chunk.strip(),
-                    "type": "section",
-                    "headers": current_headers.copy()
-                })
+                chunks.append(
+                    {
+                        "text": current_chunk.strip(),
+                        "type": "section",
+                        "headers": current_headers.copy(),
+                    }
+                )
 
             # Start new chunk with this header
             current_chunk = section + "\n\n"
@@ -71,7 +79,7 @@ def smart_chunk_markdown(text, size=CHUNK_SIZE, overlap=CHUNK_OVERLAP, min_size=
             # If chunk is getting too large, split it
             if len(current_chunk) > max_size:
                 # Try to split at sentence boundaries
-                sentences = re.split(r'(?<=[.!?])\s+', current_chunk)
+                sentences = re.split(r"(?<=[.!?])\s+", current_chunk)
                 temp_chunk = ""
 
                 for sentence in sentences:
@@ -79,22 +87,26 @@ def smart_chunk_markdown(text, size=CHUNK_SIZE, overlap=CHUNK_OVERLAP, min_size=
                         temp_chunk += sentence + " "
                     else:
                         if temp_chunk.strip() and len(temp_chunk) >= min_size:
-                            chunks.append({
-                                "text": temp_chunk.strip(),
-                                "type": "content",
-                                "headers": current_headers.copy()
-                            })
+                            chunks.append(
+                                {
+                                    "text": temp_chunk.strip(),
+                                    "type": "content",
+                                    "headers": current_headers.copy(),
+                                }
+                            )
                         temp_chunk = sentence + " "
 
                 current_chunk = temp_chunk
 
     # Add the final chunk
     if current_chunk.strip() and len(current_chunk) >= min_size:
-        chunks.append({
-            "text": current_chunk.strip(),
-            "type": "final",
-            "headers": current_headers.copy()
-        })
+        chunks.append(
+            {
+                "text": current_chunk.strip(),
+                "type": "final",
+                "headers": current_headers.copy(),
+            }
+        )
 
     # If we still have chunks that are too large, apply sliding window
     final_chunks = []
@@ -111,17 +123,19 @@ def smart_chunk_markdown(text, size=CHUNK_SIZE, overlap=CHUNK_OVERLAP, min_size=
 
                 # Try to end at a sentence boundary
                 if end < len(text):
-                    last_sentence = re.search(r'[.!?][^.!?]*$', chunk_text)
+                    last_sentence = re.search(r"[.!?][^.!?]*$", chunk_text)
                     if last_sentence:
                         end = start + last_sentence.end()
                         chunk_text = text[start:end]
 
                 if len(chunk_text) >= min_size:
-                    final_chunks.append({
-                        "text": chunk_text.strip(),
-                        "type": "windowed",
-                        "headers": chunk_data["headers"]
-                    })
+                    final_chunks.append(
+                        {
+                            "text": chunk_text.strip(),
+                            "type": "windowed",
+                            "headers": chunk_data["headers"],
+                        }
+                    )
 
                 start = end - overlap
                 if start >= len(text):
@@ -157,7 +171,7 @@ def main(directory):
 
     print(f"🔍 Scanning for markdown files in: {directory}")
 
-        # Initialize ChromaDB client (new API)
+    # Initialize ChromaDB client (new API)
     print("📊 Initializing vector database...")
     client = chromadb.PersistentClient(path=DB_PATH)
 
@@ -172,7 +186,9 @@ def main(directory):
     # Get or create collection
     if COLLECTION_NAME not in [c.name for c in client.list_collections()]:
         client.create_collection(name=COLLECTION_NAME, embedding_function=embedding_fn)
-    collection = client.get_collection(name=COLLECTION_NAME, embedding_function=embedding_fn)
+    collection = client.get_collection(
+        name=COLLECTION_NAME, embedding_function=embedding_fn
+    )
 
     # Get already indexed IDs
     try:
@@ -247,7 +263,11 @@ def main(directory):
                     "chunk_type": chunk_meta.get("type", ""),
                     "chunk_size": len(chunk_meta.get("text", "")),
                     "filename": os.path.basename(filepath),
-                    "headers": " | ".join(chunk_meta.get("headers", [])) if chunk_meta.get("headers") else ""
+                    "headers": (
+                        " | ".join(chunk_meta.get("headers", []))
+                        if chunk_meta.get("headers")
+                        else ""
+                    ),
                 }
                 metadatas.append(metadata)
 

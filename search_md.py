@@ -38,7 +38,7 @@ def preprocess_query(query):
             filtered_words.append(word)
 
     # Reconstruct query
-    processed_query = ' '.join(filtered_words)
+    processed_query = " ".join(filtered_words)
 
     # If query is too short after filtering, use original
     if len(processed_query.split()) < MIN_QUERY_LENGTH:
@@ -93,7 +93,7 @@ def main(query, num_results=DEFAULT_NUM_RESULTS):
     print("⏳ Loading vector database...")
 
     try:
-                # Initialize ChromaDB client (new API)
+        # Initialize ChromaDB client (new API)
         client = chromadb.PersistentClient(path=DB_PATH)
 
         # Use configured embedding model
@@ -150,8 +150,12 @@ def main(query, num_results=DEFAULT_NUM_RESULTS):
                 filtered_results.append((doc, meta, dist))
 
         if not filtered_results:
-            print(f"\n😕 No results above relevance threshold ({MIN_RELEVANCE_THRESHOLD:.1%}).")
-            print("   Try lowering the threshold in config.py or rephrasing your query.")
+            print(
+                f"\n😕 No results above relevance threshold ({MIN_RELEVANCE_THRESHOLD:.1%})."
+            )
+            print(
+                "   Try lowering the threshold in config.py or rephrasing your query."
+            )
             return
 
         # Display results
@@ -193,7 +197,9 @@ if __name__ == "__main__":
             try:
                 num_results = int(arg.split("=")[1])
                 if num_results > MAX_NUM_RESULTS:
-                    print(f"⚠️  Warning: Limiting results to {MAX_NUM_RESULTS} (configured maximum)")
+                    print(
+                        f"⚠️  Warning: Limiting results to {MAX_NUM_RESULTS} (configured maximum)"
+                    )
                     num_results = MAX_NUM_RESULTS
             except ValueError:
                 print("❌ Error: --results must be a number")
