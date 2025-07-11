@@ -63,6 +63,15 @@ uv run python search_md.py "what did I think about that book on productivity?"
 uv run python search_md.py "meeting notes from last Tuesday"
 ```
 
+## 🎓 Learning Tools
+
+Want to understand how semantic similarity works? Check out the interactive learning tools in the `learning/` folder:
+
+- **`similarity_playground.py`** - Explore how ChromaDB finds similar content
+- **`compare_similarity.py`** - Compare any two phrases to see their similarity score
+
+See [learning/README.md](learning/README.md) for detailed instructions.
+
 ## 🧪 How It Works
 
 1. **Chunking**: Your notes are split into ~500 character chunks (because even AI has attention limits)
@@ -99,6 +108,10 @@ This will completely remove all indexed data and start over from scratch.
 rag-poc/
 ├── index_md.py      # The indexer - feeds your notes to the AI
 ├── search_md.py     # The searcher - asks the AI about your notes
+├── config.py        # Shared configuration settings
+├── learning/        # Interactive tools to understand similarity
+│   ├── similarity_playground.py
+│   └── compare_similarity.py
 ├── pyproject.toml   # Dependencies and project config
 ├── chroma_db/       # Your local vector database (gitignored)
 └── README.md        # You are here! 👋
